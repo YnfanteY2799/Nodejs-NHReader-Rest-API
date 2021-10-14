@@ -1,30 +1,51 @@
-const express = require("express");
-const { 
+import express from "express";
+import { 
     
     getCodedDoujin, 
-    
     getRandomCode,
-    
-    getMainPageContentNoPopular 
+    getMainPageContentNoPopular,
+    getMainPageContentPopular,
 
-} = require('nhentai-websrcrapping-api');
+} from "nhentai-websrcrapping-api";
+import { port } from '../envs.js';
 
 let app = express();
-let port = 3066;
+let localPort = port;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.listen(port, () => console.log(`running server!! on port ${port}`));
+app.listen(localPort, () => console.log(`running server!! on port ${localPort}`));
 
-app.get('/getCode', (req, res) => {
-    getRandomCode(177013)
-    .then(x => res.send(x));
+console.log( new Date() );
 
+app.get('/api/getIndexScreen', (req, res) => {
+
+    console.log("Called")
+
+    getMainPageContentPopular()
+    .then(x => {
+        let resp = {
+            pop:x,
+        }
+        getMainPageContentNoPopular()
+        .then(x => resp["noPop"] = x )
+        .then(() => 
+            res.send(resp)
+        );
+    
+    });
 });
 
-app.get('/getMain', (req, res) => {
-    getMainPageContentNoPopular()
-    .then(x => res.send(x));
+app.post('/api/getDoujinFromCode', (r, rr) => {
+    let { code } = r.body;
+    console.log(code)
 
+    getCodedDoujin(code).then(x =>{ 
+    
+    
+        console.log(x)
+
+        rr.send(x);
+    
+    });
 });
-
